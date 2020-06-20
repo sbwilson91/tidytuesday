@@ -1,0 +1,10 @@
+# prodject setup
+install.packages("renv")
+renv::init()
+install.packages(c("tidyverse", "gganimate"))
+renv::snapshot()
+install.packages("devtools")
+devtools::install_github("thebioengineer/tidytuesdayR")
+renv::snapshot()
+install.packages("skimr")
+devtools::install_github("r-rust/gifski")
