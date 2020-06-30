@@ -1,0 +1,92 @@
+---
+title: "Caribou"
+author: "Sean Wilson"
+date: "24 June 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(gganimate)
+```
+
+```{r}
+# Get the Data
+
+individuals <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-23/individuals.csv')
+locations <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-23/locations.csv')
+
+
+```
+
+```{r}
+skimr::skim(individuals)
+skimr::skim(locations)
+```
+
+What information was recorded within the individuals table?
+
+```{r}
+colnames(individuals)
+```
+
+So each animal had a unique ID, and had various metrics such as gender, life stage, and pregnancy. An interesting variable is the "death_cause", lets see what is listed within this category. 
+
+```{r}
+individuals$death_cause[!is.na(individuals$death_cause)]
+```
+
+There were 54 recorded deaths. These are broken up into categories, however a large number of these are unknown. We can still graph this and identify what the largest causes of deaths were within this cohort.  
+
+```{r}
+individuals %>% 
+  filter(!is.na(death_cause)) %>% 
+  ggplot(aes(death_cause, fill = death_cause)) +
+  geom_bar()
+```
+
+Some interesting death causes here: not all natural! Poor animal that was hit by vehicles. This list can be broken down into 4 main categories: Accidental, Predation, Vehicle/Train collision and Unknown. There are also suspected predations, but the observer has still recorded as unknown.  
+
+
+```{r}
+individuals %>% 
+  filter(!is.na(death_cause)) %>% 
+  mutate(is.dead = !is.na(death_cause)) %>% 
+  ggplot(aes(is.dead, death_cause), fill(death_cause)) +
+  geom_bar(stat = "identity") +
+  coord_polar() + 
+  theme(axis.text.x = element_text())
+
+p <- individuals %>% 
+  filter(!is.na(death_cause)) %>% 
+  mutate(is.dead = !is.na(death_cause)) %>% 
+  ggplot(aes(x=is.dead, y=death_cause)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  
+  # This add the bars with a blue color
+  geom_bar(stat="identity", fill=alpha("blue", 0.3)) +
+  
+  # Limits of the plot = very important. The negative value controls the size of the inner circle, the positive one is useful to add size over each bar
+  ylim(-100,120) +
+  
+  # Custom the theme: no axis title and no cartesian grid
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-2,4), "cm")     # This remove unnecessary margin around plot
+  ) +
+  
+  # This makes the coordinate polar instead of cartesian.
+  coord_polar(start = 0)
+p
+```
+
+
+
+
+
+
+
+

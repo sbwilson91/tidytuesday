@@ -1,0 +1,80 @@
+---
+title: "Marble Races"
+author: "Sean Wilson"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gganimate)
+```
+
+## Jelle's Marble Runs
+
+Link to the [github](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-06-02/readme.md)
+
+```{r}
+# Get the Data
+
+marbles <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-02/marbles.csv')
+
+# Or read in with tidytuesdayR package (https://github.com/thebioengineer/tidytuesdayR)
+
+# Either ISO-8601 date or year/week works!
+
+# Install via devtools::install_github("thebioengineer/tidytuesdayR")
+
+tuesdata <- tidytuesdayR::tt_load('2020-06-02')
+tuesdata <- tidytuesdayR::tt_load(2020, week = 23)
+
+
+marbles <- tuesdata$marbles
+```
+
+```{r}
+skimr::skim(marbles)
+marbles
+```
+
+Let's see what marble names there are.
+```{r}
+(names <- unique(marbles$marble_name))
+length(names)
+
+```
+
+There are 32 different marbles competing. 
+
+```{r}
+marbles$points
+```
+
+
+How long does each race take?
+
+```{r}
+marbles %>% 
+  ggplot(aes(race, time_s)) +
+  geom_boxplot()
+```
+
+So the "race" category contains 2 parts, the Qualifier which decides pole and Race event itself.
+Generate a very simple animated graph using `gganimate` 
+
+```{r}
+anim <- marbles %>% 
+  ggplot(aes(track_length_m, avg_time_lap)) +
+  geom_point(aes(colour = marble_name, group = 1L)) +
+  transition_states(date,
+                    transition_length = 2,
+                    state_length = 1)
+animate(
+  anim + enter_fade() + exit_fly(y_loc = 1),
+  renderer = gifski_renderer()
+)
+```
+
+
+
+
