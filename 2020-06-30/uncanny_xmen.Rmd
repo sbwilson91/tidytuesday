@@ -451,6 +451,77 @@ new_gif
 ```
 
 
+
+
+Time course of depictions of speech vs thought across time
+
+```{r}
+b <- tuesdata$character_visualization
+
+b <- b %>%
+   group_by(character, costume) %>%
+   #summarise_each(funs(sum)) %>% 
+   mutate(character = gsub("\\=.*", "", character)) %>% 
+  mutate(character = gsub("\\(.*", "", character))
+temp <- b
+
+format_sp_th <- b %>% 
+  filter(character != "Omnipresent narration", character != "Editor narration") %>%
+  group_by(issue, character) %>% 
+  mutate(costume = NA) %>% 
+  summarise_each(funs = sum) %>% 
+  ungroup() %>% 
+  group_by(character) %>% 
+  mutate(total.speech = cumsum(speech), total.thought = cumsum(thought), total.depicted = cumsum(depicted)) %>% 
+  group_by(issue) %>% 
+  mutate(rank = rank(-total.depicted),
+         #value_rel = total/total[rank==1],
+         value_lbl = paste0(" ", character)) %>% 
+  group_by(character) %>% 
+  filter(rank<=10) %>% 
+  ungroup() 
+
+staticplot <- ggplot(format_sp_th, aes(total.speech, total.thought, group = character, 
+                fill = as.factor(character), color = as.factor(character))) +
+ 
+  geom_text(aes(y = 0, label = paste(character, " ")), vjust = 0.2, hjust = 1) +
+  geom_text(aes(y=total.depicted,label = value_lbl, hjust=0)) +
+  coord_flip(clip = "off", expand = FALSE) +
+  scale_y_continuous(labels = scales::comma) +
+  guides(color = FALSE, fill = FALSE) +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.x=element_blank(),
+         axis.title.y=element_blank(),
+        legend.position="none",
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.grid.major.x = element_line( size=.1, color="grey" ),
+        panel.grid.minor.x = element_line( size=.1, color="grey" ),
+        plot.title=element_text(size=22, hjust=0.5, face="bold", colour="grey", vjust=-1),
+        plot.subtitle=element_text(size=15, hjust=0.5, face="italic", color="grey"),
+        plot.caption =element_text(size=8, hjust=0.5, face="italic", color="grey"),
+        plot.background=element_blank(),
+       plot.margin = margin(2,2, 2, 4, "cm"))
+
+animation <- staticplot + transition_states(issue, transition_length = 4, state_length = 1) +
+  view_follow(fixed_x = TRUE)  + ease_aes('cubic-in-out') +
+  labs(title = 'Speech vs Thought across issues',  
+       subtitle  =  "Cumulative as of Issue {closest_state}",
+       caption  = "Speech vs Thought | Data Source: @ClaremontRun") 
+
+
+spvsth <- animate(animation, 500, fps = 30,  width = 400, height = 400, 
+        renderer = gifski_renderer())
+```
+
+
+
+
 ```{r}
 b <- tuesdata$character_visualization
 
